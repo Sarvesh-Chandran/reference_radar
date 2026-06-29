@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'screens/home_view.dart';
 
 void main() => runApp(const ReferenceRadarApp());
 
@@ -81,13 +82,6 @@ class _MainNavigationState extends State<MainNavigation> {
 //
 // @Tiara (API Frontend): Build the ListView.builder here to show the books Ivy fetches.
 // You must include a CircularProgressIndicator while loading and show a user-friendly error message if it fails *from rubric so kinda important*.
-class HomeView extends StatelessWidget {
-  const HomeView({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text('Home View - API Book Search Goes Here'));
-  }
-}
 
 // ── TASK 2 UI: Data Persistence ──────────────────────────────────────
 // @Farhan DS (Storage Coder): Build the local To-Do list UI here.
