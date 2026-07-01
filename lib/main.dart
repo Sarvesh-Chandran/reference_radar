@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/home_view.dart';
+import 'package:reference_radar/services/sharedpreference.dart';
 
 void main() => runApp(const ReferenceRadarApp());
 
@@ -87,11 +88,110 @@ class _MainNavigationState extends State<MainNavigation> {
 // @Farhan DS (Storage Coder): Build the local To-Do list UI here.
 // You MUST use SharedPreferences to save and load the list of assignments.
 // Remember to use jsonEncode to save the list, and jsonDecode to load it in initState().
-class SavedView extends StatelessWidget {
+class SavedView extends StatefulWidget {
   const SavedView({super.key});
+
+  @override
+  State<SavedView> createState() => _SavedViewState();
+}
+
+class _SavedViewState extends State<SavedView> {
+  List<String> _assignments = [];
+  final TextEditingController _assignmentController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInitialData(); // Load the list when the screen starts
+  }
+
+  // 1. Load data from SharedPreferences using our service
+  Future<void> _loadInitialData() async {
+    final savedList = await AssignmentStorageService.loadAssignments();
+    setState(() {
+      _assignments = savedList;
+    });
+  }
+
+  // 2. Add a new assignment and save the updated list
+  Future<void> _addAssignment() async {
+    if (_assignmentController.text.trim().isEmpty) return;
+
+    setState(() {
+      _assignments.add(_assignmentController.text.trim());
+    });
+
+    _assignmentController.clear();
+    await AssignmentStorageService.saveAssignments(
+      _assignments,
+    ); // Save list via JSON
+  }
+
+  // 3. Delete an assignment and save the updated list
+  Future<void> _deleteAssignment(int index) async {
+    setState(() {
+      _assignments.removeAt(index);
+    });
+    await AssignmentStorageService.saveAssignments(
+      _assignments,
+    ); // Save list via JSON
+  }
+
   @override
   Widget build(BuildContext context) {
-    return const Center(child: Text('Saved View - Local To-Do List Goes Here'));
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          // Input row for adding new assignments
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _assignmentController,
+                  decoration: const InputDecoration(
+                    labelText: 'Enter new assignment...',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              ElevatedButton(
+                onPressed: _addAssignment,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.all(16),
+                ),
+                child: const Icon(Icons.add),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // The scrollable To-Do List view
+          Expanded(
+            child: _assignments.isEmpty
+                ? const Center(child: Text('No assignments saved yet!'))
+                : ListView.builder(
+                    itemCount: _assignments.length,
+                    itemBuilder: (context, index) {
+                      return Card(
+                        child: ListTile(
+                          title: Text(_assignments[index]),
+                          trailing: IconButton(
+                            icon: const Icon(
+                              Icons.delete,
+                              color: Colors.redAccent,
+                            ),
+                            onPressed: () => _deleteAssignment(index),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

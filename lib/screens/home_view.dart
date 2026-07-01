@@ -4,6 +4,9 @@ import 'detail_view.dart';
 import 'package:reference_radar/models/book.dart';
 import 'package:reference_radar/services/openlibrary_service.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
 
@@ -140,8 +143,43 @@ class _HomeViewState extends State<HomeView> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // TODO (Task 2 - Storage Coder)
+                  onPressed: () async {
+                    // 1. Take whatever text is currently typed in the search box
+                    String taskText = searchController.text.trim();
+                    
+                    // Fallback name if the user hasn't typed anything in the search box yet
+                    if (taskText.isEmpty) {
+                      taskText = "New Study Reference Task";
+                    }
+
+                    // 2. Initialize SharedPreferences
+                    final prefs = await SharedPreferences.getInstance();
+                    String? existingData = prefs.getString('assignments_list_key');
+
+                    List<String> favoritesList = [];
+                    if (existingData != null) {
+                      final List<dynamic> decodedList = jsonDecode(existingData);
+                      favoritesList = decodedList.cast<String>();
+                    }
+
+                    // 3. Add to your persistence list if it isn't a duplicate
+                    if (!favoritesList.contains(taskText)) {
+                      favoritesList.add(taskText);
+                      String updatedData = jsonEncode(favoritesList);
+                      await prefs.setString('assignments_list_key', updatedData);
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('"$taskText" added to Study Tasks!')),
+                        );
+                      }
+                    } else {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('"$taskText" is already in Study Tasks!')),
+                        );
+                      }
+                    }
                   },
                   child: const Text("➕ Add Study Task"),
                 ),
