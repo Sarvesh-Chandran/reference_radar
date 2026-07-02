@@ -1,7 +1,10 @@
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:reference_radar/services/openlibrary_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:reference_radar/services/bookmark_service.dart';
+import 'package:reference_radar/widgets/premium_dialog.dart';
 
 class DetailView extends StatefulWidget {
   final String title;
@@ -42,18 +45,13 @@ class _DetailViewState extends State<DetailView> {
     });
   }
 
-Future<void> openBook() async {
-  final Uri url = Uri.parse(
-    "https://openlibrary.org${widget.workKey}",
-  );
+  Future<void> openBook() async {
+    final Uri url = Uri.parse("https://openlibrary.org${widget.workKey}");
 
-  if (await canLaunchUrl(url)) {
-    await launchUrl(
-      url,
-      mode: LaunchMode.externalApplication,
-    );
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -95,20 +93,18 @@ Future<void> openBook() async {
 
             const SizedBox(height: 16),
 
-Row(
-  children: [
-    const Icon(Icons.calendar_today, size: 18),
-    const SizedBox(width: 8),
-    const Text(
-      "First Published:",
-      style: TextStyle(fontWeight: FontWeight.bold),
-    ),
-    const SizedBox(width: 8),
-    Expanded(
-      child: Text(widget.firstPublishYear),
-    ),
-  ],
-),
+            Row(
+              children: [
+                const Icon(Icons.calendar_today, size: 18),
+                const SizedBox(width: 8),
+                const Text(
+                  "First Published:",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(width: 8),
+                Expanded(child: Text(widget.firstPublishYear)),
+              ],
+            ),
 
             const SizedBox(height: 20),
 
@@ -119,51 +115,83 @@ Row(
 
             const SizedBox(height: 10),
 
-            const SizedBox(height: 10),
-
-Expanded(
-  child: description == "Loading..."
-      ? const Center(
-          child: CircularProgressIndicator(),
-        )
-      : SingleChildScrollView(
-          child: Text(
-            description,
-            style: const TextStyle(
-              fontSize: 15,
-              height: 1.5,
+            // DESCRIPTION TEXT GOES HERE
+            Expanded(
+              child: description == "Loading..."
+                  ? const Center(child: CircularProgressIndicator())
+                  : SingleChildScrollView(
+                      child: Text(
+                        description,
+                        style: const TextStyle(fontSize: 15, height: 1.5),
+                      ),
+                    ),
             ),
-          ),
-        ),
-),
 
             const SizedBox(height: 16),
 
+            // BUTTONS GO HERE
             Row(
               children: [
                 Expanded(
                   child: SizedBox(
                     height: 50,
                     child: ElevatedButton(
-  onPressed: () async {
-    await BookmarkService.saveBook(
-      title: widget.title,
-      author: widget.author,
-      workKey: widget.workKey,
-      coverId: widget.coverId,
-      firstPublishYear: widget.firstPublishYear,
-    );
+                      onPressed: () async {
+                        final prefs = await SharedPreferences.getInstance();
 
-    if (!context.mounted) return;
+                        // 1. Check if the user has already bought Premium
+                        final bool isPremium =
+                            prefs.getBool('is_premium') ?? false;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Book saved successfully!"),
-      ),
-    );
-  },
-  child: const Text("Bookmark"),
-),
+                        final String? data = prefs.getString('saved_books');
+                        final List savedBooks = data == null
+                            ? []
+                            : jsonDecode(data);
+
+                        // 2. If they are NOT premium and already have 3 books, hit the paywall
+                        if (!isPremium && savedBooks.length >= 3) {
+                          final bool? upgraded = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => const PremiumDialog(),
+                          );
+
+                          if (upgraded == true) {
+                            // 3. THEY UPGRADED!  state saved permanently
+                            await prefs.setBool('is_premium', true);
+
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  "Welcome to Premium! Unlimited saves unlocked.",
+                                ),
+                              ),
+                            );
+                          } else {
+                            // They declined to pay, stop the function
+                            return;
+                          }
+                        }
+
+                        // 4. Proceed with saving the book
+                        await BookmarkService.saveBook(
+                          title: widget.title,
+                          author: widget.author,
+                          workKey: widget.workKey,
+                          coverId: widget.coverId,
+                          firstPublishYear: widget.firstPublishYear,
+                        );
+
+                        if (!context.mounted) return;
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Book saved successfully!"),
+                          ),
+                        );
+                      },
+                      child: const Text("Bookmark"),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -171,7 +199,7 @@ Expanded(
                   child: SizedBox(
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: openBook, // Tiara's URL launcher
                       child: const Text("Read"),
                     ),
                   ),
