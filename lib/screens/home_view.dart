@@ -22,7 +22,7 @@ class _HomeViewState extends State<HomeView> {
 
   List<Book> books = [];
 
-  // State variables for the rubric requirements
+  // stating variables for the rubric requirements
   bool isLoading = false;
   String errorMessage = '';
 
@@ -32,7 +32,7 @@ class _HomeViewState extends State<HomeView> {
     super.dispose();
   }
 
-  // 2. The actual working search function
+  //  working search function
   Future<void> searchBooks() async {
     // Hide keyboard when searching
     FocusScope.of(context).unfocus();
@@ -91,32 +91,29 @@ class _HomeViewState extends State<HomeView> {
               ),
               const SizedBox(height: 20),
 
-Align(
-  alignment: Alignment.centerRight,
-  child: TextButton.icon(
-    onPressed: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const SavedBooksView(),
-        ),
-      );
-    },
-    icon: const Icon(Icons.bookmark),
-    label: const Text("View Saved Books"),
-  ),
-),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SavedBooksView(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.bookmark),
+                  label: const Text("View Saved Books"),
+                ),
+              ),
 
-const Text(
-  "Recommended Books",
-  style: TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.bold,
-  ),
-),
+              const Text(
+                "Recommended Books",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 10),
 
-              // 3. UI Logic for Loading, Error, and List
+              // UI logic for Loading, Error, and List
               Expanded(
                 child: isLoading
                     ? const Center(
@@ -128,7 +125,7 @@ const Text(
                           errorMessage,
                           style: const TextStyle(color: Colors.red),
                         ),
-                      ) // Rubric requirement
+                      )
                     : books.isEmpty
                     ? const Center(
                         child: Text("Search for a book to get started!"),
@@ -146,11 +143,12 @@ const Text(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => DetailView(
-                                    title: books[index].title,
-                                    author: books[index].author,
-                                    workKey: books[index].workKey,
-                                    coverId: books[index].coverId,
-                                    firstPublishYear: books[index].firstPublishYear,
+                                      title: books[index].title,
+                                      author: books[index].author,
+                                      workKey: books[index].workKey,
+                                      coverId: books[index].coverId,
+                                      firstPublishYear:
+                                          books[index].firstPublishYear,
                                     ),
                                   ),
                                 );
@@ -167,39 +165,52 @@ const Text(
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () async {
-                    // 1. Take whatever text is currently typed in the search box
+                    //use any text  currently typed in the search box
                     String taskText = searchController.text.trim();
-                    
+
                     // Fallback name if the user hasn't typed anything in the search box yet
                     if (taskText.isEmpty) {
                       taskText = "New Study Reference Task";
                     }
 
-                    // 2. Initialize SharedPreferences
+                    // Initialize SharedPreferences
                     final prefs = await SharedPreferences.getInstance();
-                    String? existingData = prefs.getString('assignments_list_key');
+                    String? existingData = prefs.getString(
+                      'assignments_list_key',
+                    );
 
                     List<String> favoritesList = [];
                     if (existingData != null) {
-                      final List<dynamic> decodedList = jsonDecode(existingData);
+                      final List<dynamic> decodedList = jsonDecode(
+                        existingData,
+                      );
                       favoritesList = decodedList.cast<String>();
                     }
 
-                    // 3. Add to your persistence list if it isn't a duplicate
+                    // Adding persistence list if it isn't a duplicate
                     if (!favoritesList.contains(taskText)) {
                       favoritesList.add(taskText);
                       String updatedData = jsonEncode(favoritesList);
-                      await prefs.setString('assignments_list_key', updatedData);
+                      await prefs.setString(
+                        'assignments_list_key',
+                        updatedData,
+                      );
 
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('"$taskText" added to Study Tasks!')),
+                          SnackBar(
+                            content: Text('"$taskText" added to Study Tasks!'),
+                          ),
                         );
                       }
                     } else {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('"$taskText" is already in Study Tasks!')),
+                          SnackBar(
+                            content: Text(
+                              '"$taskText" is already in Study Tasks!',
+                            ),
+                          ),
                         );
                       }
                     }

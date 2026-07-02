@@ -1,8 +1,6 @@
 import 'dart:convert';
 
-import 'package:http/http.dart'
-    as http; // add 'http: ^1.2.1' under dependecies in pubspec.yaml,
-//then run flutter pub get in terminal
+import 'package:http/http.dart' as http;
 
 import 'package:reference_radar/models/book.dart'; //import book model;nested file?
 

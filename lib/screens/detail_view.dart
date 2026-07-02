@@ -63,7 +63,6 @@ class _DetailViewState extends State<DetailView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // THE FIX: Everything above the buttons is now inside an Expanded SingleChildScrollView
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
@@ -73,7 +72,6 @@ class _DetailViewState extends State<DetailView> {
                       Center(
                         child: Image.network(
                           "https://covers.openlibrary.org/b/id/${widget.coverId}-L.jpg",
-                          // Retaining your rubric-winning MediaQuery!
                           height: MediaQuery.of(context).size.height * 0.25,
                           errorBuilder: (context, error, stackTrace) {
                             return const Icon(Icons.menu_book, size: 120);
@@ -129,7 +127,6 @@ class _DetailViewState extends State<DetailView> {
 
                     const SizedBox(height: 10),
 
-                    // Notice the Expanded widget is removed from here because the whole page scrolls now
                     description == "Loading..."
                         ? const Center(child: CircularProgressIndicator())
                         : Text(
