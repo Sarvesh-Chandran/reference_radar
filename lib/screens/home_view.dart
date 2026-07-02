@@ -7,6 +7,8 @@ import 'package:reference_radar/services/openlibrary_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
+import 'saved_books.dart';
+
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
 
@@ -89,10 +91,29 @@ class _HomeViewState extends State<HomeView> {
               ),
               const SizedBox(height: 20),
 
-              const Text(
-                "Recommended Books",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
+Align(
+  alignment: Alignment.centerRight,
+  child: TextButton.icon(
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const SavedBooksView(),
+        ),
+      );
+    },
+    icon: const Icon(Icons.bookmark),
+    label: const Text("View Saved Books"),
+  ),
+),
+
+const Text(
+  "Recommended Books",
+  style: TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+  ),
+),
               const SizedBox(height: 10),
 
               // 3. UI Logic for Loading, Error, and List
@@ -125,9 +146,11 @@ class _HomeViewState extends State<HomeView> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => DetailView(
-                                      title: books[index].title,
-                                      author: books[index].author,
-                                      workKey: books[index].workKey,
+                                    title: books[index].title,
+                                    author: books[index].author,
+                                    workKey: books[index].workKey,
+                                    coverId: books[index].coverId,
+                                    firstPublishYear: books[index].firstPublishYear,
                                     ),
                                   ),
                                 );
