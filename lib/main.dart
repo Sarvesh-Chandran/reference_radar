@@ -15,7 +15,7 @@ void main() => runApp(const ReferenceRadarApp());
 // @Tiara (API Frontend): Build the ListView.builder here to show the books Ivy fetches.
 // You must include a CircularProgressIndicator while loading and show a user-friendly error message if it fails *from rubric so kinda important*.
 
-// ── TASK 2 UI: Data Persistence ──────────────────────────────────────
+//// Task 2 UI: Data Persistence (Farhan)
 // @Farhan DS (Storage Coder): Build the local To-Do list UI here.
 // You MUST use SharedPreferences to save and load the list of assignments.
 // Remember to use jsonEncode to save the list, and jsonDecode to load it in initState().
