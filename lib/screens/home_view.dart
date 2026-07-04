@@ -62,75 +62,85 @@ class _HomeViewState extends State<HomeView> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "Search academic references for your study",
-                style: TextStyle(fontSize: 18, color: Colors.grey),
-              ),
-              const SizedBox(height: 20),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Search academic references for your study",
+                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                ),
+                const SizedBox(height: 20),
 
-              // SEARCH BOX
-              TextField(
-                controller: searchController,
-                decoration: InputDecoration(
-                  hintText: "Search books or authors...",
-                  prefixIcon: IconButton(
-                    icon: const Icon(Icons.search),
-                    onPressed: searchBooks,
+                // SEARCH BOX
+                TextField(
+                  controller: searchController,
+                  decoration: InputDecoration(
+                    hintText: "Search books or authors...",
+                    prefixIcon: IconButton(
+                      icon: const Icon(Icons.search),
+                      onPressed: searchBooks,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  onSubmitted: (_) => searchBooks(),
+                ),
+                const SizedBox(height: 20),
+
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SavedBooksView(),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.bookmark),
+                    label: const Text("View Saved Books"),
                   ),
                 ),
-                onSubmitted: (_) =>
-                    searchBooks(), // Allows searching by pressing Enter
-              ),
-              const SizedBox(height: 20),
 
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SavedBooksView(),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.bookmark),
-                  label: const Text("View Saved Books"),
+                const Text(
+                  "Recommended Books",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-              ),
+                const SizedBox(height: 10),
 
-              const Text(
-                "Recommended Books",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-
-              // UI logic for Loading, Error, and List
-              Expanded(
-                child: isLoading
+                // UI logic for Loading, Error, and List
+                isLoading
                     ? const Center(
-                        child: CircularProgressIndicator(),
-                      ) // Rubric requirement
+                        child: Padding(
+                          padding: EdgeInsets.all(20),
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
                     : errorMessage.isNotEmpty
                     ? Center(
-                        child: Text(
-                          errorMessage,
-                          style: const TextStyle(color: Colors.red),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Text(
+                            errorMessage,
+                            style: const TextStyle(color: Colors.red),
+                          ),
                         ),
                       )
                     : books.isEmpty
                     ? const Center(
-                        child: Text("Search for a book to get started!"),
+                        child: Padding(
+                          padding: EdgeInsets.all(20),
+                          child: Text("Search for a book to get started!"),
+                        ),
                       )
                     : ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
                         itemCount: books.length,
                         itemBuilder: (context, index) {
                           return Card(
@@ -157,68 +167,68 @@ class _HomeViewState extends State<HomeView> {
                           );
                         },
                       ),
-              ),
 
-              // THUMB-ZONE BUTTON
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    //use any text  currently typed in the search box
-                    String taskText = searchController.text.trim();
+                const SizedBox(height: 20),
 
-                    // Fallback name if the user hasn't typed anything in the search box yet
-                    if (taskText.isEmpty) {
-                      taskText = "New Study Reference Task";
-                    }
+                // THUMB-ZONE BUTTON
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      String taskText = searchController.text.trim();
 
-                    // Initialize SharedPreferences
-                    final prefs = await SharedPreferences.getInstance();
-                    String? existingData = prefs.getString(
-                      'assignments_list_key',
-                    );
+                      if (taskText.isEmpty) {
+                        taskText = "New Study Reference Task";
+                      }
 
-                    List<String> favoritesList = [];
-                    if (existingData != null) {
-                      final List<dynamic> decodedList = jsonDecode(
-                        existingData,
-                      );
-                      favoritesList = decodedList.cast<String>();
-                    }
-
-                    // Adding persistence list if it isn't a duplicate
-                    if (!favoritesList.contains(taskText)) {
-                      favoritesList.add(taskText);
-                      String updatedData = jsonEncode(favoritesList);
-                      await prefs.setString(
+                      final prefs = await SharedPreferences.getInstance();
+                      String? existingData = prefs.getString(
                         'assignments_list_key',
-                        updatedData,
                       );
 
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('"$taskText" added to Study Tasks!'),
-                          ),
+                      List<String> favoritesList = [];
+                      if (existingData != null) {
+                        final List<dynamic> decodedList = jsonDecode(
+                          existingData,
                         );
+                        favoritesList = decodedList.cast<String>();
                       }
-                    } else {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              '"$taskText" is already in Study Tasks!',
+
+                      if (!favoritesList.contains(taskText)) {
+                        favoritesList.add(taskText);
+                        String updatedData = jsonEncode(favoritesList);
+                        await prefs.setString(
+                          'assignments_list_key',
+                          updatedData,
+                        );
+
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '"$taskText" added to Study Tasks!',
+                              ),
                             ),
-                          ),
-                        );
+                          );
+                        }
+                      } else {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '"$taskText" is already in Study Tasks!',
+                              ),
+                            ),
+                          );
+                        }
                       }
-                    }
-                  },
-                  child: const Text("➕ Add Study Task"),
+                    },
+                    child: const Text("➕ Add Study Task"),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
